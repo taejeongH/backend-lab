@@ -4,6 +4,7 @@ import io.github.taejeongh98.redislab.domain.content.dto.ContentRequestDto;
 import io.github.taejeongh98.redislab.domain.content.dto.ContentResponseDto;
 import io.github.taejeongh98.redislab.domain.content.entity.Content;
 import io.github.taejeongh98.redislab.domain.content.repository.ContentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -55,5 +56,19 @@ public class ContentService {
         Content content = Content.from(request);
         Content savedContent = contentRepository.save(content);
         return ContentResponseDto.from(savedContent);
+    }
+
+    @Transactional
+    public ContentResponseDto updateContent(int contentId, ContentRequestDto request) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다."));
+
+        content.update(request);
+        return ContentResponseDto.from(content);
+    }
+
+    @Transactional
+    public void deleteContent(int contentId) {
+        contentRepository.deleteById(contentId);
     }
 }
