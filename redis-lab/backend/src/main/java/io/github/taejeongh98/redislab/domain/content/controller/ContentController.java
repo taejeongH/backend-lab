@@ -25,4 +25,16 @@ class ContentController {
         ContentResponseDto result = contentService.getContent(contentId);
         return ResponseEntity.ok(result);
     }
+
+    @PutMapping("/{contentId}")
+    public ResponseEntity<ContentResponseDto> updateContent(@PathVariable int contentId, @RequestBody ContentRequestDto request) {
+        ContentResponseDto result = contentService.updateContent(contentId, request);
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{contentId}")
+    public ResponseEntity<Void> deleteContent(@PathVariable int contentId){
+        contentService.deleteContent(contentId);
+        return ResponseEntity.noContent().build();
+    }
 }

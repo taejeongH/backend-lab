@@ -46,4 +46,13 @@ public class Content {
                 content.getViewCount()
         );
     }
+
+    public void update(ContentRequestDto request) {
+        this.type = request.getType();
+        this.title = request.getTitle();
+        this.creator = request.getCreator();
+        this.description = request.getDescription();
+        this.releaseYear = request.getReleaseYear();
+        this.viewCount = request.getViewCount();
+    }
 }

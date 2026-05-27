@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ContentRepository extends JpaRepository<Content, Integer> {
 
     Optional<Content> findById(int contentId);
+    void deleteById(int contentId);
 }
