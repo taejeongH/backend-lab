@@ -47,7 +47,9 @@ public class ContentService {
 
         try {
             String jsonValue = objectMapper.writeValueAsString(response);
-            stringRedisTemplate.opsForValue().set(key, jsonValue, Duration.ofMinutes(5));
+            //Duration TTL = Duration.ofSeconds(20);
+            Duration TTL = Duration.ofMinutes(5);
+            stringRedisTemplate.opsForValue().set(key, jsonValue, TTL);
         } catch (Exception e) {
             throw new RuntimeException("Redis 캐시 직렬화 실패", e);
         }
@@ -73,12 +75,12 @@ public class ContentService {
 
 
         //트랜잭션이 종료된 이후(커밋 후) 레디스 캐시 삭제
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                stringRedisTemplate.delete("content:"+contentId);
-            }
-        });
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//            @Override
+//            public void afterCommit() {
+//                stringRedisTemplate.delete("content:"+contentId);
+//            }
+//        });
 
         return ContentResponseDto.from(content);
     }
@@ -90,11 +92,11 @@ public class ContentService {
         contentRepository.deleteById(contentId);
 
         //트랜잭션이 종료된 이후(커밋 후) 레디스 캐시 삭제
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                stringRedisTemplate.delete("content:"+contentId);
-            }
-        });
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//            @Override
+//            public void afterCommit() {
+//                stringRedisTemplate.delete("content:"+contentId);
+//            }
+//        });
     }
 }
