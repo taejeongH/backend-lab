@@ -1,3 +1,5 @@
+# Spring Redis
+
 ## Redis Cleint 종류
 Redis Client의 종류에는 Lettuce, Redisson, Jedis가 있는데, Jedis는 비동기 처리를 지원하지 않으며 Thread-safe 하지 않아 잘 쓰지 않는 추세이기 때문에 Spring Data Redis, Lettuce, Redisson 3가지를 비교
 ### 1. spring data redis

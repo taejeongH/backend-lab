@@ -43,4 +43,10 @@ class ContentController {
         boolean success = contentService.viewContent(contentId, idempotencyKey);
         return ResponseEntity.ok(success);
     }
+
+    @PostMapping("/{contentId}/favorite")
+    public ResponseEntity<Boolean> favoriteContent(@PathVariable int contentId, @RequestHeader("User-Id") int userId) {
+        boolean success = contentService.favoriteContent(contentId, userId);
+        return ResponseEntity.ok(success);
+    }
 }
