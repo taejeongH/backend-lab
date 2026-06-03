@@ -37,4 +37,10 @@ class ContentController {
         contentService.deleteContent(contentId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{contentId}/view")
+    public ResponseEntity<Boolean> viewContent(@PathVariable int contentId, @RequestHeader("Idempotency-Key") int idempotencyKey) {
+        boolean success = contentService.viewContent(contentId, idempotencyKey);
+        return ResponseEntity.ok(success);
+    }
 }

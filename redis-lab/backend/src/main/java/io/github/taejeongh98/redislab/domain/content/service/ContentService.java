@@ -99,4 +99,24 @@ public class ContentService {
 //            }
 //        });
     }
+
+    @Transactional
+    public boolean viewContent(int contentId, int idempotencyKey) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다."));
+        String key = "view:req:" + contentId + ":" + idempotencyKey;
+
+        boolean success = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", Duration.ofMinutes(10));
+
+        //Redis 저장 완료 후 예외가 발생하는 경우 실험
+        //return false;
+
+        if (!success) return false;
+
+        int cnt = content.getViewCount();
+        content.setViewCount(++cnt);
+
+        return true;
+    }
+
 }
