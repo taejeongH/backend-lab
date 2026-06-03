@@ -3,10 +3,13 @@ package io.github.taejeongh98.redislab.domain.content.service;
 import io.github.taejeongh98.redislab.domain.content.dto.ContentRequestDto;
 import io.github.taejeongh98.redislab.domain.content.dto.ContentResponseDto;
 import io.github.taejeongh98.redislab.domain.content.entity.Content;
+import io.github.taejeongh98.redislab.domain.content.entity.Favorite;
 import io.github.taejeongh98.redislab.domain.content.repository.ContentRepository;
+import io.github.taejeongh98.redislab.domain.content.repository.FavoriteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -24,6 +27,7 @@ public class ContentService {
     private final ContentRepository contentRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+    private final FavoriteRepository favoriteRepository;
 
     public ContentResponseDto getContent(int contentId) {
         String key = "content:" + contentId;
@@ -119,4 +123,25 @@ public class ContentService {
         return true;
     }
 
+    @Transactional
+    public boolean favoriteContent(int contentId, int userId) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다."));
+
+        String key = "favorite:req:" + contentId + ":" + userId;
+        Boolean success = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", Duration.ofMinutes(10));
+
+
+        if (!Boolean.TRUE.equals(success)) {
+            return false;
+        }
+
+        try {
+            Favorite favorite = new Favorite(contentId, userId);
+            favoriteRepository.save(favorite);
+            return true;
+        } catch (DataIntegrityViolationException e) {
+            return false;
+        }
+    }
 }
