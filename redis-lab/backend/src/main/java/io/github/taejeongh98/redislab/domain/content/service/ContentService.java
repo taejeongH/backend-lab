@@ -12,12 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class ContentService {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
     private final FavoriteRepository favoriteRepository;
+    private static String RANK_KEY = "content:view:ranking";
 
     public ContentResponseDto getContent(int contentId) {
         String key = "content:" + contentId;
@@ -120,6 +121,12 @@ public class ContentService {
         int cnt = content.getViewCount();
         content.setViewCount(++cnt);
 
+        //해당 member(contentId)의 score를 1늘림
+        stringRedisTemplate.opsForZSet().incrementScore(RANK_KEY, String.valueOf(contentId), 1);
+
+        //type별 랭킹
+        stringRedisTemplate.opsForZSet().incrementScore(RANK_KEY + content.getType(), String.valueOf(contentId), 1);
+
         return true;
     }
 
@@ -143,5 +150,32 @@ public class ContentService {
         } catch (DataIntegrityViolationException e) {
             return false;
         }
+    }
+
+    public List<ContentResponseDto> getRanking(String contentType) {
+        String key = RANK_KEY + contentType;
+
+        //score가 높은 순대로 조회
+        Set<String> contentIdSet = stringRedisTemplate.opsForZSet().reverseRange(key, 0, 9);
+
+        if (contentIdSet == null || contentIdSet.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> contentIds = contentIdSet.stream()
+                .map(Integer::valueOf)
+                .toList();
+
+        //score가 높은 순으로 저장된 contentIds를 DB를 통해 조회
+        List<Content> contents = contentRepository.findAllById(contentIds);
+
+        Map<Integer, Content> contentMap = contents.stream()
+                .collect(Collectors.toMap(Content::getId, Function.identity()));
+
+        return contentIds.stream()
+                .map(contentMap::get)
+                .filter(Objects::nonNull)
+                .map(ContentResponseDto::from)
+                .toList();
     }
 }
