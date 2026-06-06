@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/contents")
 @RequiredArgsConstructor
@@ -48,5 +50,11 @@ class ContentController {
     public ResponseEntity<Boolean> favoriteContent(@PathVariable int contentId, @RequestHeader("User-Id") int userId) {
         boolean success = contentService.favoriteContent(contentId, userId);
         return ResponseEntity.ok(success);
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<List<ContentResponseDto>> getRanking(@RequestParam String contentType) {
+        List<ContentResponseDto> result = contentService.getRanking(contentType);
+        return ResponseEntity.ok(result);
     }
 }
